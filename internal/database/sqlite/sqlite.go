@@ -1,4 +1,4 @@
-package main
+package sqlite
 
 import (
 	"fmt"
@@ -11,9 +11,14 @@ var schema string = `
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    login TEXT NOT NULL,
-    password BLOB NOT NULL,
-    email TEXT UNIQUE NOT NULL
+    login TEXT UNIQUE NOT NULL,
+    password BLOB NOT NULL
+);
+
+DROP TABLE IF EXISTS sessions;
+CREATE TABLE sessions (
+    id TEXT NOT NULL PRIMARY KEY,
+    user_id INTEGER NOT NULL
 );
 
 DROP TABLE IF EXISTS wallets;
@@ -44,7 +49,7 @@ func ConnnectSQLite() (*sqlx.DB, error) {
 	db.MustExec(schema)
 
 	tx := db.MustBegin()
-	tx.MustExec("INSERT INTO users (login, password, email) VALUES ($1, $2, $3)", "Jason", "123", "jmoiron@jmoiron.net")
+	// tx.MustExec("INSERT INTO users (login, password) VALUES ($1, $2)", "Jason", "123")
 	// tx.MustExec("INSERT INTO wallets (user_id, title, general) VALUES ($1, $2, $3)", "1", "my wallet", 15000)
 	// tx.MustExec("INSERT INTO operations (wallet_id, type, amount, date) VALUES ($1, $2, $3, $4)", "1", "income", 1500, time.Now())
 	// tx.MustExec("INSERT INTO operations (wallet_id, type, amount, date) VALUES ($1, $2, $3, $4)", "1", "expense", 1500, time.Now())

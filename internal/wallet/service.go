@@ -1,4 +1,4 @@
-package main
+package wallet
 
 import (
 	"log/slog"
@@ -6,22 +6,22 @@ import (
 	"time"
 )
 
-type WalletRepository interface {
-	CreateWallet(w Wallet) (int64, error)
+type Repository interface {
+	Save(w Wallet) (int64, error)
 	AddOperation(userID int64, op Operation) error
 	WalletByID(id int64) (Wallet, error)
 }
 
 type walletService struct {
-	repo WalletRepository
+	repo Repository
 }
 
-func NewWalletService(repo WalletRepository) *walletService {
+func NewService(repo Repository) *walletService {
 	return &walletService{repo: repo}
 }
 
-func (s *walletService) CreateWallet(w Wallet) (Wallet, error) {
-	id, err := s.repo.CreateWallet(w)
+func (s *walletService) Save(w Wallet) (Wallet, error) {
+	id, err := s.repo.Save(w)
 	if err != nil {
 		slog.Error("failed to create wallet", slog.String("error", err.Error()))
 		return Wallet{}, err

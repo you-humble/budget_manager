@@ -20,11 +20,9 @@ POST http://localhost:8080/wallet/create
 ```
 body:
 {
-  "wallet": {
-    "user_id": 1,
-    "title": "my wallet",
-    "general": 25000
-  }
+  "user_id": 1,
+  "title": "my wallet",
+  "general": 25000
 }
 ```
 
@@ -43,7 +41,7 @@ body:
 
 Add operation
 
-POST http://localhost:8080/operation/add
+POST http://localhost:8080/wallet/operation/add
 ```
 body:
 {
@@ -56,3 +54,8 @@ body:
 }
 ```
 ---
+
+{
+  "login": "user",
+  "password": "123"
+}

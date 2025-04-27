@@ -1,4 +1,4 @@
-package main
+package wallet
 
 import "time"
 
@@ -16,4 +16,9 @@ type Operation struct {
 	Type     string    `json:"type" db:"type"`
 	Amount   int       `json:"amount" db:"amount"`
 	Date     time.Time `json:"date" db:"date"`
+}
+
+type OperationOptions struct {
+	UserID    int64     `json:"user_id"`
+	Operation Operation `json:"operation"`
 }

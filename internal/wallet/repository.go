@@ -1,21 +1,23 @@
-package main
+package wallet
 
 import (
 	"fmt"
 	"time"
 
+	"budget_manager/internal/entities"
+
 	"github.com/jmoiron/sqlx"
 )
 
-type walletOptRepository struct {
+type repository struct {
 	db *sqlx.DB
 }
 
-func NewWalletRepository(db *sqlx.DB) *walletOptRepository {
-	return &walletOptRepository{db: db}
+func NewRepository(db *sqlx.DB) *repository {
+	return &repository{db: db}
 }
 
-func (repo *walletOptRepository) CreateWallet(w Wallet) (int64, error) {
+func (repo *repository) Save(w Wallet) (int64, error) {
 	var id int64
 	if err := repo.db.Get(&id, `
 	INSERT INTO wallets
@@ -23,13 +25,13 @@ func (repo *walletOptRepository) CreateWallet(w Wallet) (int64, error) {
 	VALUES
 	($1, $2, $3)
 	RETURNING id;`, w.UserID, w.Title, w.General); err != nil {
-		return 0, fmt.Errorf("CreateWallet - error after processing the INSERT query 1: %w", err)
+		return 0, fmt.Errorf("wallet.Save - error after processing the INSERT query 1: %w", err)
 	}
 
 	return id, nil
 }
 
-func (repo *walletOptRepository) AddOperation(userID int64, op Operation) error {
+func (repo *repository) AddOperation(userID int64, op Operation) error {
 	tx, err := repo.db.Beginx()
 	if err != nil {
 		return fmt.Errorf("AddOperation - failed to begin transaction: %w", err)
@@ -90,8 +92,8 @@ func (repo *walletOptRepository) AddOperation(userID int64, op Operation) error 
 	return nil
 }
 
-func (repo *walletOptRepository) WalletByID(id int64) (Wallet, error) {
-	var wwo []WalletWithOperations
+func (repo *repository) WalletByID(id int64) (Wallet, error) {
+	var wwo []entities.WalletWithOperations
 	if err := repo.db.Select(&wwo,
 		`SELECT
 			wallets.id AS wallet_id,
@@ -115,7 +117,7 @@ func (repo *walletOptRepository) WalletByID(id int64) (Wallet, error) {
 	return newWallet(wwo)
 }
 
-func newWallet(rawWallet []WalletWithOperations) (Wallet, error) {
+func newWallet(rawWallet []entities.WalletWithOperations) (Wallet, error) {
 	w := Wallet{
 		ID:         rawWallet[0].WalletID,
 		UserID:     rawWallet[0].WalletUserID,

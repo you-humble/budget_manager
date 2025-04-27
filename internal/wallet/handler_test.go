@@ -1,4 +1,4 @@
-package main
+package wallet
 
 import (
 	"bytes"
@@ -8,9 +8,23 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"budget_manager/internal/router"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/mock/gomock"
 )
+
+type mockUserHandler struct{}
+
+func (m *mockUserHandler) Register(ctx *gin.Context) {}
+func (m *mockUserHandler) Login(ctx *gin.Context)    {}
+func (m *mockUserHandler) Logout(ctx *gin.Context)   {}
+
+type mockSessionManager struct{}
+
+func (m *mockSessionManager) AuthMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {}
+}
 
 func TestCreateWallet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -18,9 +32,9 @@ func TestCreateWallet(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	s := NewMockWalletService(ctrl)
-	h := NewWalletHandler(s)
-	router := SetupRouter(h)
+	s := NewMockService(ctrl)
+	h := NewHandler(s)
+	router := router.SetupRouter(h, &mockUserHandler{}, &mockSessionManager{})
 
 	expectedWallet := Wallet{
 		ID:         1,
@@ -31,7 +45,7 @@ func TestCreateWallet(t *testing.T) {
 	}
 
 	// Success
-	s.EXPECT().CreateWallet(expectedWallet).Return(expectedWallet, nil)
+	s.EXPECT().Save(expectedWallet).Return(expectedWallet, nil)
 	successData, err := json.Marshal(&expectedWallet)
 	if err != nil {
 		t.Fatalf("failed to marshal data: %v", err)
@@ -64,7 +78,7 @@ func TestCreateWallet(t *testing.T) {
 
 	// Error
 	s.EXPECT().
-		CreateWallet(expectedWallet).
+		Save(expectedWallet).
 		Return(Wallet{}, fmt.Errorf("no results"))
 	brokenData := successData
 
@@ -85,7 +99,7 @@ func TestCreateWallet(t *testing.T) {
 		t.Errorf("wrong status: got %v, want %v", status, http.StatusBadRequest)
 	}
 
-	errMsg := "message: wrong request"
+	errMsg := "message: bad request"
 	if w.Body.String() != errMsg {
 		t.Errorf("wrong response: got %v, want %s", w.Body.String(), errMsg)
 	}
@@ -97,9 +111,9 @@ func TestShowWallet(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	s := NewMockWalletService(ctrl)
-	h := NewWalletHandler(s)
-	router := SetupRouter(h)
+	s := NewMockService(ctrl)
+	h := NewHandler(s)
+	router := router.SetupRouter(h, &mockUserHandler{}, &mockSessionManager{})
 
 	var userID int64 = 1
 	wallet := Wallet{
@@ -150,22 +164,12 @@ func TestAddOperation(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	s := NewMockWalletService(ctrl)
-	h := NewWalletHandler(s)
-	router := SetupRouter(h)
-
-	// wallet := Wallet{
-	// 	ID:      1,
-	// 	UserID:  1,
-	// 	Title:   "test",
-	// 	General: 10000,
-	// 	Operations: []Operation{
-	// 		{ID: 1, WalletID: 1, Type: "income", Amount: 1000},
-	// 	},
-	// }
+	s := NewMockService(ctrl)
+	h := NewHandler(s)
+	router := router.SetupRouter(h, &mockUserHandler{}, &mockSessionManager{})
 
 	op := Operation{
-		ID: 1,
+		ID:       1,
 		WalletID: 1,
 		Type:     "income",
 		Amount:   1000,
@@ -173,7 +177,7 @@ func TestAddOperation(t *testing.T) {
 
 	// Success
 	s.EXPECT().AddOperation(int64(1), op).Return(nil)
-		successData, err := json.Marshal(&OperationOptions{
+	successData, err := json.Marshal(&OperationOptions{
 		UserID:    1,
 		Operation: op,
 	})
@@ -185,7 +189,7 @@ func TestAddOperation(t *testing.T) {
 
 	req, err := http.NewRequest(
 		http.MethodPost,
-		"/operation/add",
+		"/wallet/operation/add",
 		bytes.NewReader(successData),
 	)
 	if err != nil {
