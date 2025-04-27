@@ -1,4 +1,4 @@
-package entities
+package wallet
 
 type WalletWithOperations struct {
 	WalletID      int64   `db:"wallet_id"`
@@ -9,9 +9,4 @@ type WalletWithOperations struct {
 	OpType        *string `db:"operations_type"`
 	OpAmount      *int    `db:"operations_amount"`
 	OpDate        *string `db:"operations_date"`
-}
-
-type Credentials struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
 }

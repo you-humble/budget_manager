@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"budget_manager/internal/entities"
-
 	"github.com/jmoiron/sqlx"
 )
 
@@ -93,7 +91,7 @@ func (repo *repository) AddOperation(userID int64, op Operation) error {
 }
 
 func (repo *repository) WalletByID(id int64) (Wallet, error) {
-	var wwo []entities.WalletWithOperations
+	var wwo []WalletWithOperations
 	if err := repo.db.Select(&wwo,
 		`SELECT
 			wallets.id AS wallet_id,
@@ -117,7 +115,7 @@ func (repo *repository) WalletByID(id int64) (Wallet, error) {
 	return newWallet(wwo)
 }
 
-func newWallet(rawWallet []entities.WalletWithOperations) (Wallet, error) {
+func newWallet(rawWallet []WalletWithOperations) (Wallet, error) {
 	w := Wallet{
 		ID:         rawWallet[0].WalletID,
 		UserID:     rawWallet[0].WalletUserID,

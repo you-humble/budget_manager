@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"budget_manager/internal/entities"
 	"budget_manager/internal/er"
 	"budget_manager/internal/session"
 
@@ -96,17 +95,17 @@ func hashPass(plainPass, salt string) []byte {
 	return append(res, hashed...)
 }
 
-func credentials(ctx *gin.Context) (entities.Credentials, error) {
-	cr := entities.Credentials{}
+func credentials(ctx *gin.Context) (Credentials, error) {
+	cr := Credentials{}
 
 	if err := ctx.BindJSON(&cr); err != nil {
 		er.BadRequest(ctx, "bad request")
-		return entities.Credentials{}, err
+		return Credentials{}, err
 	}
 
 	if cr.Login == "" || cr.Password == "" {
 		ctx.String(http.StatusForbidden, "wrong login or password")
-		return entities.Credentials{}, errors.New("wrong login or password")
+		return Credentials{}, errors.New("wrong login or password")
 	}
 
 	return cr, nil

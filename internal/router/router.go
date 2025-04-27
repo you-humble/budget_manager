@@ -1,6 +1,8 @@
 package router
 
 import (
+	"log/slog"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,5 +38,6 @@ func SetupRouter(wh WalletHandler, uh UserHandler, sm SessionManager) *gin.Engin
 	users.POST("/login", uh.Login)
 	users.DELETE("/logout", uh.Logout)
 
+	slog.Info("the router has been set up")
 	return router
 }
